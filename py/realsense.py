@@ -11,6 +11,10 @@ TARGET_HEIGHT = RAW_HEIGHT // DOWNSAMPLE_FACTOR
 MIN_SPEED_THRESHOLD = 8 // DOWNSAMPLE_FACTOR
 MAX_SPEED_THRESHOLD = 64 // DOWNSAMPLE_FACTOR
 
+GRID_SIZE = 16
+GRID_WIDTH = TARGET_WIDTH // GRID_SIZE
+GRID_HEIGHT = TARGET_HEIGHT // GRID_SIZE
+
 # Get frames and downsample frames
 def fetch_depth_for_flow(pipeline):
     if not pipeline:
@@ -46,7 +50,7 @@ def process_flow_for_synthesis(current_frame, previous_frame):
     )
 
     # Get speed (magnitude) and angle of the flow
-    magnitude, angle = cv2.cartToPolar(
+    magnitude, _ = cv2.cartToPolar(
         flow[..., 0], flow[..., 1], angleInDegrees=True
     )
 
@@ -65,6 +69,17 @@ def process_flow_for_synthesis(current_frame, previous_frame):
 
     return magnitude_normalized
 
+def divide_flow_into_cells(flow):
+    flow_float = flow.astype(np.float32)
+    flow_reshaped = flow_float.reshape(
+        GRID_HEIGHT, GRID_SIZE,
+        GRID_WIDTH, GRID_SIZE
+    )
+
+    # average of each grid
+    flow_cells = flow_reshaped.mean(axis=(1, 3))
+
+    return flow_cells
 
 # ----------------------------------------------
 
@@ -90,6 +105,10 @@ try:
             continue
 
         motion_magnitude = process_flow_for_synthesis(current_depth_frame, previous_depth_frame)
+
+        ###### Send this via OSC ######################################################
+        # Check cell indices, type, value ranges
+        motion_magnitude_cells = divide_flow_into_cells(motion_magnitude)
 
         # Visualize the motion
         cv2.imshow('Motion Magnitude', motion_magnitude)
