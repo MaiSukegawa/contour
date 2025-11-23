@@ -89,4 +89,4 @@ def divide_flow_into_cells(_flow):
     # average of each grid
     _flow_cells = _flow_reshaped.mean(axis=(1, 3))
 
-    return _flow_cells
+    return _flow_cells / 255.0  # Normalize to [0, 1] range

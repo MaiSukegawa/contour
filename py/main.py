@@ -1,4 +1,5 @@
 import realsense as rs
+import osc_server as osc
 import cv2
 
 def main():
@@ -24,9 +25,9 @@ def main():
 
             motion_magnitude = rs.process_flow_for_visualization(current_depth_frame, previous_depth_frame)
 
-            ###### Send this via OSC ######################################################
-            # Check cell indices, type, value ranges
             motion_magnitude_cells = rs.divide_flow_into_cells(motion_magnitude)
+            motion_magnitude_cells_flattened = motion_magnitude_cells.flatten()
+            osc.send_motion_data(motion_magnitude_cells_flattened.tolist())
 
             # Visualize the motion
             cv2.imshow('Motion Magnitude', motion_magnitude)
