@@ -8,12 +8,21 @@ RAW_HEIGHT = 480
 DOWNSAMPLE_FACTOR = 2
 TARGET_WIDTH = RAW_WIDTH // DOWNSAMPLE_FACTOR
 TARGET_HEIGHT = RAW_HEIGHT // DOWNSAMPLE_FACTOR
-MIN_SPEED_THRESHOLD = 8 // DOWNSAMPLE_FACTOR
-MAX_SPEED_THRESHOLD = 64 // DOWNSAMPLE_FACTOR
 
-GRID_SIZE = 16
+MIN_DEPTH = 0.03
+MAX_DEPTH = 0.3
+MIN_SPEED_THRESHOLD = 2 // DOWNSAMPLE_FACTOR
+MAX_SPEED_THRESHOLD = 18 // DOWNSAMPLE_FACTOR
+
+GRID_SIZE = 16 # 300 instances, upper half is cut in Max patch
 GRID_WIDTH = TARGET_WIDTH // GRID_SIZE
 GRID_HEIGHT = TARGET_HEIGHT // GRID_SIZE
+
+BG_SUBTRACTOR = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=16, detectShadows=False)
+TEMPORAL_FILTER = rs2.temporal_filter()
+
+depth_scale = None
+
 
 def init_realsense_pipeline():
     _pipeline = rs2.pipeline()
@@ -38,20 +47,31 @@ def fetch_depth_for_flow(_pipeline):
     if not _depth_frame:
         return None
     
+    # _depth_image_original = np.asanyarray(TEMPORAL_FILTER.process(_depth_frame).get_data())
     _depth_image_original = np.asanyarray(_depth_frame.get_data())
+
     _depth_image_downsampled = cv2.resize(
         _depth_image_original,
         (TARGET_WIDTH, TARGET_HEIGHT),
         interpolation=cv2.INTER_LINEAR
     )
-    _depth_image_normalized = cv2.normalize(
-        _depth_image_downsampled,
-        None, 0, 255, cv2.NORM_MINMAX
-    ).astype(np.uint8)
+    # _depth_image_grayscale = cv2.normalize(
+    #     _depth_image_downsampled,
+    #     None, 0, 255, cv2.NORM_MINMAX
+    # ).astype(np.uint8)
 
-    return _depth_image_normalized
+    _depth_image_grayscale = ((_depth_image_downsampled - MIN_DEPTH) / ((MAX_DEPTH - MIN_DEPTH) * 255)).astype(np.uint8)
 
-def process_flow_for_visualization(_current_frame, _previous_frame):
+    return _depth_image_grayscale
+
+def process_flow(_current_frame, _previous_frame, _bg_subtractor=BG_SUBTRACTOR):
+    _foreground_mask = _bg_subtractor.apply(_current_frame)
+    _, _foreground_mask = cv2.threshold(_foreground_mask, 64, 255, cv2.THRESH_BINARY)
+
+    _kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    _foreground_mask = cv2.morphologyEx(_foreground_mask, cv2.MORPH_OPEN, _kernel)
+    _foreground_mask_normalized = _foreground_mask.astype(np.float32) / 255.0
+
     # Optical flow (Farneback method)
     _flow = cv2.calcOpticalFlowFarneback(
         _previous_frame,
@@ -72,12 +92,12 @@ def process_flow_for_visualization(_current_frame, _previous_frame):
         _magnitude_smoothed, MIN_SPEED_THRESHOLD, MAX_SPEED_THRESHOLD
     )
 
-    _magnitude_normalized = cv2.normalize(
-        _magnitude_clipped,
-        None, 0, 255, cv2.NORM_MINMAX
-    ).astype(np.uint8)
+    _magnitude_normalized = (( _magnitude_clipped - MIN_SPEED_THRESHOLD) / (MAX_SPEED_THRESHOLD - MIN_SPEED_THRESHOLD))
 
-    return _magnitude_normalized
+    # _final_flow = (_magnitude_normalized * _foreground_mask_normalized * 255).astype(np.uint8)
+    _final_flow = (_magnitude_normalized * 255).astype(np.uint8)
+
+    return _final_flow
 
 def divide_flow_into_cells(_flow):
     _flow_float = _flow.astype(np.float32)

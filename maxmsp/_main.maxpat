@@ -9,8 +9,40 @@
             "modernui": 1
         },
         "classnamespace": "box",
-        "rect": [ 34.0, 80.0, 1199.0, 702.0 ],
+        "rect": [ 320.0, 235.0, 1275.0, 685.0 ],
         "boxes": [
+            {
+                "box": {
+                    "id": "obj-32",
+                    "linecount": 2,
+                    "maxclass": "comment",
+                    "numinlets": 1,
+                    "numoutlets": 0,
+                    "patching_rect": [ 68.0, 159.0, 150.0, 34.0 ],
+                    "text": "cut the upper side of image (because its noisy)"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-30",
+                    "maxclass": "newobj",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "int" ],
+                    "patching_rect": [ 30.0, 165.0, 36.0, 22.0 ],
+                    "text": "- 120"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-4",
+                    "maxclass": "newobj",
+                    "numinlets": 4,
+                    "numoutlets": 0,
+                    "patching_rect": [ 30.0, 525.0, 75.0, 22.0 ],
+                    "text": "dac~ 1 2 3 4"
+                }
+            },
             {
                 "box": {
                     "id": "obj-28",
@@ -143,17 +175,8 @@
                     "numinlets": 2,
                     "numoutlets": 4,
                     "outlettype": [ "signal", "signal", "signal", "signal" ],
-                    "patching_rect": [ 30.0, 240.0, 109.0, 22.0 ],
-                    "text": "poly~ air 300"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-23",
-                    "maxclass": "ezdac~",
-                    "numinlets": 2,
-                    "numoutlets": 0,
-                    "patching_rect": [ 30.0, 525.0, 45.0, 45.0 ]
+                    "patching_rect": [ 30.0, 240.0, 142.0, 22.0 ],
+                    "text": "poly~ air 180 @parallel 1"
                 }
             },
             {
@@ -163,7 +186,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "float" ],
-                    "patching_rect": [ 120.0, 156.5, 19.0, 22.0 ],
+                    "patching_rect": [ 120.0, 195.0, 19.0, 22.0 ],
                     "text": "t f"
                 }
             },
@@ -174,7 +197,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 30.0, 156.5, 87.0, 22.0 ],
+                    "patching_rect": [ 30.0, 195.0, 87.0, 22.0 ],
                     "text": "prepend target"
                 }
             },
@@ -185,7 +208,7 @@
                     "numinlets": 1,
                     "numoutlets": 3,
                     "outlettype": [ "", "", "" ],
-                    "patching_rect": [ 30.0, 120.0, 41.0, 22.0 ],
+                    "patching_rect": [ 30.0, 135.0, 41.0, 22.0 ],
                     "text": "unjoin"
                 }
             },
@@ -306,14 +329,14 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-19", 0 ],
-                    "source": [ "obj-18", 0 ]
+                    "destination": [ "obj-22", 0 ],
+                    "source": [ "obj-18", 1 ]
                 }
             },
             {
                 "patchline": {
-                    "destination": [ "obj-22", 0 ],
-                    "source": [ "obj-18", 1 ]
+                    "destination": [ "obj-30", 0 ],
+                    "source": [ "obj-18", 0 ]
                 }
             },
             {
@@ -342,13 +365,13 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-23", 1 ],
+                    "destination": [ "obj-4", 3 ],
                     "source": [ "obj-28", 1 ]
                 }
             },
             {
                 "patchline": {
-                    "destination": [ "obj-23", 0 ],
+                    "destination": [ "obj-4", 2 ],
                     "source": [ "obj-28", 0 ]
                 }
             },
@@ -360,13 +383,19 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-23", 1 ],
+                    "destination": [ "obj-19", 0 ],
+                    "source": [ "obj-30", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-4", 1 ],
                     "source": [ "obj-36", 1 ]
                 }
             },
             {
                 "patchline": {
-                    "destination": [ "obj-23", 0 ],
+                    "destination": [ "obj-4", 0 ],
                     "source": [ "obj-36", 0 ]
                 }
             },

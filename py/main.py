@@ -15,6 +15,7 @@ def main():
 
         while True:
             current_depth_frame = rs.fetch_depth_for_flow(pipeline)
+            # cv2.imshow('Raw Image', current_depth_frame)
             
             if current_depth_frame is None:
                 continue
@@ -23,14 +24,14 @@ def main():
                 previous_depth_frame = current_depth_frame.copy()
                 continue
 
-            motion_magnitude = rs.process_flow_for_visualization(current_depth_frame, previous_depth_frame)
+            motion_magnitude = rs.process_flow(current_depth_frame, previous_depth_frame)
 
             motion_magnitude_cells = rs.divide_flow_into_cells(motion_magnitude)
             motion_magnitude_cells_flattened = motion_magnitude_cells.flatten()
             osc.send_motion_data(motion_magnitude_cells_flattened.tolist())
 
             # Visualize the motion
-            cv2.imshow('Motion Magnitude', motion_magnitude)
+            # cv2.imshow('Motion Magnitude', motion_magnitude)
 
             # Exit the loop
             if cv2.waitKey(1) & 0xFF == ord('q'):
